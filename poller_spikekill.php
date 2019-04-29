@@ -186,16 +186,20 @@ function kill_spikes($templates, &$found) {
 		WHERE gt.id IN (' . implode(',', $templates) . ')'), 'rrd_path', 'rrd_path');
 
 	if (cacti_sizeof($rrdfiles)) {
-	foreach($rrdfiles as $f) {
-		debug("Removing Spikes from '$f'");
-		$response = exec(read_config_option('path_php_binary') . ' -q ' .
-			$config['base_path'] . '/cli/removespikes.php --rrdfile=' . $f . ($debug ? ' --debug':''));
-		if (substr_count($response, 'Spikes Found and Remediated')) {
-			$found++;
-		}
+		foreach($rrdfiles as $f) {
+			debug("Removing Spikes from '$f'");
+			$args = ' -q ';
+			assemble_php_args($args);
 
-		debug(str_replace('NOTE: ', '', $response));
-	}
+			$response = exec(read_config_option('path_php_binary') . $args .
+				$config['base_path'] . '/cli/removespikes.php --rrdfile=' . $f . ($debug ? ' --debug':''));
+
+			if (substr_count($response, 'Spikes Found and Remediated')) {
+				$found++;
+			}
+
+			debug(str_replace('NOTE: ', '', $response));
+		}
 	}
 
 	return cacti_sizeof($rrdfiles);
